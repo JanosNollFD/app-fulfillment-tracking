@@ -13,10 +13,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@flipdish/api-client-javascript": "^1.0.97",
+    "@flipdish/api-client-typescript": "^1.1.605",
     "axios": "^0.25.0",
     "axios-cookiejar-support": "^2.0.3",
+    "bluebird": "^3.7.2",
     "express": "^4.18.1",
     "node-cron": "^3.0.0",
+    "request": "^2.88.2",
     "tough-cookie": "^4.0.0"
   },
   "devDependencies": {
