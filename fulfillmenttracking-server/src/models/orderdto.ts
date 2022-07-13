@@ -1,6 +1,7 @@
 export class OrderDto {
     id: number;
-    fulfillmentStatus: string;
+    fulfillmentStatusId: string;
+    fulfillmentStatusName: string;
     requestedFor: string;
     orderAmount: number;
     paymentStatus: string;

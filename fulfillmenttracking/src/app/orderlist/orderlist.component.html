@@ -15,7 +15,19 @@
 
     <ng-container matColumnDef="fulfillmentStatus">
         <th mat-header-cell *matHeaderCellDef>F.status</th>
-        <td mat-cell *matCellDef="let element"> {{element.fulfillmentStatus}} </td>
+        <td mat-cell *matCellDef="let element">
+
+          <mat-form-field appearance="fill">
+            <!--  [disabled]="disableSelect.value" -->
+          <mat-select (selectionChange)="onFulfillmentStateChange($event)" [(value)]="element.fulfillmentStatusId">
+            <mat-option *ngFor="let stat of element.possibleStatuses" [value]="stat.value"
+              (onSelectionChange)="onFulfillmentStateChangeItem(element,$event.source.value)">
+              {{stat.viewValue}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="requestedFor">

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Order } from '../models/order';
 import { ORDERS } from '../mock-orders';
+import { OrderfulfillmentService } from '../orderfulfillment.service';
 
 @Component({
   selector: 'app-orderlist',
@@ -8,16 +9,43 @@ import { ORDERS } from '../mock-orders';
   styleUrls: ['./orderlist.component.css']
 })
 export class OrderlistComponent implements OnInit {
-  //orders: Order[] = [];
-  //orders: Order[] = ORDERS;
-  dataSource: Order[] = ORDERS;
+  dataSource: Order[] = [];
   displayedColumns: string[] = ['id', 'name', 'fulfillmentStatus', 'requestedFor', 'orderAmount'];
   //selectedHero: Order | undefined;
 
-  //constructor(private service: OrdersService) { }
-  constructor() { }
+  constructor(private orderfulfillmentService: OrderfulfillmentService) { }
+
+  getOrders(): void {
+    this.orderfulfillmentService.getOrders()
+      .subscribe( orders => {
+        orders.forEach( o => {
+          o.possibleStatuses = [
+            { value: o.fulfillmentStatusId, viewValue: o.fulfillmentStatusName },
+          ];
+          if (o.fulfillmentStatusId != "preparing")
+            o.possibleStatuses.push({ value: "preparing", viewValue: "Preparing" });
+          if (o.fulfillmentStatusId != "ready-to-collect")
+            o.possibleStatuses.push({ value: "ready-to-collect", viewValue: "Ready to collect" });
+        });
+        this.dataSource = orders;
+      });
+  }
+
+  onFulfillmentStateChange( data: any ): void {
+    const sourceElement = data.source;
+    let selectedValue = data.value;
+  }
+  onFulfillmentStateChangeItem( order: Order, newState: string ): void {
+    if (order.fulfillmentStatusId == newState) {
+      console.log('No change');
+      return;
+    }
+    console.log(`Change: ${order.id} to ${newState}`);
+    this.orderfulfillmentService.setOrderFulfillmentState(order.id, newState);
+  }
+  
 
   ngOnInit() {
-    //this.orders = this.service.getOrders();
+    this.getOrders();
   }
 }

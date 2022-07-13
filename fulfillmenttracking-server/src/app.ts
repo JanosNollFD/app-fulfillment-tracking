@@ -1,20 +1,31 @@
 import { StoresApi, OrdersApi, Order } from '@flipdish/api-client-typescript';
 import { OrderDto } from './models/orderdto';
 
+const flipdishApiAccessToken: string = process.env.ACCESS_TOKEN || '';
+
 const express = require( "express" );
+const bodyParser = require("body-parser");
 //import https from 'https';
 const app = express();
 const port = 3000; // default port to listen
 
-//var Flipdish = require('@flipdish/api-client-javascript');
+//Here we are configuring express to use body-parser as middle-ware.
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+/*app.use(bodyParser.urlencoded({
+    extended: false
+ }));*/
 
+//var Flipdish = require('@flipdish/api-client-javascript');
+console.log('Access token: ' + flipdishApiAccessToken);
+const appId = "fd15009"; // Test store Janos London
   
 function getOrderSummariesWithFulfillmentInfo() : Promise<Array<OrderDto>> {
     return new Promise<Array<OrderDto>>((resolve, reject) => {
             let ordersApi = new OrdersApi();
-            ordersApi.accessToken = '';
+            ordersApi.accessToken = flipdishApiAccessToken;
             //storesApi.getStores('mexican cafe', 1, 20)
-            ordersApi.getOrdersSummary("fd15009")
+            ordersApi.getOrdersSummary(appId)
             .then(response => {
                 //response.body.Data.map(store => console.log(store));
                 let orders = response.body.Data;
@@ -34,12 +45,13 @@ function getOrderSummariesWithFulfillmentInfo() : Promise<Array<OrderDto>> {
                 ordersApi.searchFulfillmentStatuses("fd15009", orderIdsString)
                 .then(response2 => {
                     let fulfillmentResults = response2.body.Data;
-                    //response2.body.Data.map(status2 => console.log(status2));
+                    response2.body.Data.map(status2 => console.log(status2));
                     fulfillmentResults.forEach( fulfillment => {
                         let orderId = fulfillment.OrderId;
                         let dtoForIndex = orderDtos.find( el => el.id == orderId);
                         if (dtoForIndex) {
-                            dtoForIndex.fulfillmentStatus = fulfillment.StatusId;
+                            dtoForIndex.fulfillmentStatusId = fulfillment.StatusId;
+                            dtoForIndex.fulfillmentStatusName = fulfillment.StatusName;
                         }
                     });
 
@@ -62,7 +74,23 @@ app.get( "/api/ordersummaries", ( req, res ) => {
         res.send(JSON.stringify(results));
     });
 });
-    
+
+app.post( "/api/orderfulfillmentstatechange", (req, res) => {
+    //code to perform particular action.
+    //To access POST variable use req.body()methods.
+    console.log(req.body);
+    const orderId = req.body.orderId;
+    const newState = req.body.newState;
+
+    let ordersApi = new OrdersApi();
+    ordersApi.accessToken = flipdishApiAccessToken;
+    const statusRequest: any = {
+        StatusId: newState
+    };
+    ordersApi.updateFulfillmentStatus(appId, orderId, statusRequest);
+
+    res.send("{}");
+}); 
 
 // define a route handler for the default home page
 app.get( "/api/test", ( req, res ) => {
